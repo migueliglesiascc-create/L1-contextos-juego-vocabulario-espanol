@@ -54,8 +54,8 @@ async function rpc(name, body) {
 }
 
 async function loadCompetition() {
-  const code = $("sessionCode").value.trim().toUpperCase();
-  $("sessionCode").value = code;
+  const code = $("sessionCode").value;
+  if (!code) return;
   $("classSelect").disabled = true;
   $("classSelect").innerHTML = '<option value="">Cargando clases…</option>';
   try {
@@ -76,11 +76,34 @@ async function loadCompetition() {
   }
 }
 
+async function loadActiveSessions() {
+  const select = $("sessionCode");
+  select.disabled = true;
+  try {
+    const sessions = await rpc("list_active_competitions", {});
+    if (!sessions.length) {
+      select.innerHTML = '<option value="">No hay competiciones abiertas</option>';
+      $("formMessage").textContent = "Tu profesor abrirá una competición próximamente.";
+      return;
+    }
+    select.innerHTML = '<option value="">Selecciona la competición</option>' + sessions.map(session => `<option value="${session.code}">${escapeHtml(session.name)}</option>`).join("");
+    const requested = new URLSearchParams(location.search).get("session") || localStorage.getItem("competitionCode");
+    if (requested && sessions.some(session => session.code === requested.toUpperCase())) select.value = requested.toUpperCase();
+    else if (sessions.length === 1) select.value = sessions[0].code;
+    select.disabled = false;
+    if (select.value) await loadCompetition();
+    else { $("classSelect").innerHTML = '<option value="">Selecciona primero una competición</option>'; $("formMessage").textContent = ""; }
+  } catch (error) {
+    select.innerHTML = '<option value="">No se pudieron cargar las competiciones</option>';
+    $("formMessage").textContent = error.message; $("formMessage").className = "form-message bad";
+  }
+}
+
 async function registerStudent(event) {
   event.preventDefault();
   const button = $("startButton");
   button.disabled = true; button.textContent = "Preparando partida…";
-  if (!currentCompetition || currentCompetition.code !== $("sessionCode").value.trim().toUpperCase()) await loadCompetition();
+  if (!currentCompetition || currentCompetition.code !== $("sessionCode").value) await loadCompetition();
   if (!currentCompetition) { button.disabled = false; button.innerHTML = 'Empezar la partida <span aria-hidden="true">→</span>'; return; }
   try {
     currentRunId = await rpc("start_game", {
@@ -236,6 +259,4 @@ $("soundButton").addEventListener("click", () => {
   $("soundIcon").textContent = soundEnabled ? "🔊" : "🔇"; $("soundLabel").textContent = soundEnabled ? "Sonidos activados" : "Sonidos desactivados";
 });
 
-const requestedSession = new URLSearchParams(location.search).get("session") || localStorage.getItem("competitionCode") || "L1-CONTEXTOS";
-$("sessionCode").value = requestedSession.toUpperCase();
-loadCompetition();
+loadActiveSessions();

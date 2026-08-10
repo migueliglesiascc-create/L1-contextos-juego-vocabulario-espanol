@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Panel del profesor para administrar competiciones de vocabulario.">
+  <title>Panel del profesor · Contextos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Fraunces:opsz,wght@9..144,700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=3">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <main class="app-shell admin-shell">
+    <header class="hero admin-hero">
+      <img class="brand-logo" src="miguel-iglesias-logo.png" alt="Miguel Iglesias">
+      <div><p class="eyebrow">ADMINISTRACIÓN</p><h1>Panel del profesor</h1><p class="intro">Crea, abre y cierra competiciones sin perder sus clasificaciones.</p></div>
+      <a class="back-link" href="index.html">Ver juego</a>
+    </header>
+
+    <section class="admin-login registration-card" id="loginCard">
+      <div class="registration-copy"><p class="eyebrow">ACCESO PRIVADO</p><h2>Identifícate</h2><p>Recibirás un enlace seguro en el correo autorizado. No necesitas contraseña.</p></div>
+      <form class="registration-form" id="loginForm">
+        <label>Correo del profesor<input type="email" id="adminEmail" value="migueliglesias.cc@gmail.com" required autocomplete="email"></label>
+        <p class="form-message" id="loginMessage" role="status"></p>
+        <button class="primary-button start-button" type="submit">Enviar enlace de acceso</button>
+      </form>
+    </section>
+
+    <section class="admin-dashboard hidden" id="adminDashboard">
+      <div class="admin-toolbar"><div><p class="eyebrow">TUS COMPETICIONES</p><h2>Sesiones</h2></div><button class="refresh-button" id="signOut" type="button">Cerrar sesión</button></div>
+      <section class="create-session-card">
+        <h3>Crear una competición</h3>
+        <form id="createSessionForm" class="create-session-form">
+          <label>Nombre de la sesión<input id="newSessionName" required maxlength="100" placeholder="Contextos L1 — Septiembre 2026"></label>
+          <label>Código<input id="newSessionCode" required maxlength="24" pattern="[A-Z0-9-]{3,24}" placeholder="L1-SEP26"></label>
+          <button class="primary-button" type="submit">Crear y abrir</button>
+        </form>
+        <p class="form-message" id="adminMessage" role="status"></p>
+      </section>
+      <div class="admin-session-list" id="adminSessionList"><p class="loading-ranking">Cargando sesiones…</p></div>
+      <section class="admin-ranking hidden" id="adminRanking">
+        <div class="leaderboard-heading"><div><p class="eyebrow">CLASIFICACIÓN</p><h2 id="adminRankingTitle">Resultados</h2></div><button class="refresh-button" id="closeRanking" type="button">Cerrar</button></div>
+        <div id="adminRankingContent"></div>
+      </section>
+    </section>
+  </main>
+  <script src="admin.js?v=1"></script>
+</body>
+</html>

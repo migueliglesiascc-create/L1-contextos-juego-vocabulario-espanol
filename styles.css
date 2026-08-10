@@ -41,6 +41,7 @@ h1 { margin: 0; font-family: "Fraunces", Georgia, serif; font-size: clamp(2.15re
 .registration-form { display: grid; gap: 14px; }
 .registration-form label { display: grid; gap: 6px; color: var(--ink); font-size: .82rem; font-weight: 700; }
 .registration-form input:not([type="checkbox"]), .registration-form select { width: 100%; border: 1.5px solid var(--line); border-radius: 10px; padding: 11px 12px; color: var(--ink); background: white; font: inherit; }
+#classSelect { font-variant-numeric: slashed-zero; font-feature-settings: "zero" 1; }
 .registration-form input:focus, .registration-form select:focus { border-color: var(--teal); outline: 3px solid rgba(8,127,120,.14); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .consent-row { grid-template-columns: 18px 1fr !important; align-items: start; color: var(--muted) !important; font-weight: 500 !important; line-height: 1.4; }
@@ -127,3 +128,27 @@ kbd { border: 1px solid #c9c2b5; border-bottom-width: 2px; border-radius: 4px; p
   .intro { font-size: .9rem; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* Panel del profesor */
+.admin-hero { grid-template-columns: 82px 1fr auto; }
+.back-link { border: 1px solid var(--line); border-radius: 9px; padding: 9px 13px; color: var(--teal-dark); background: var(--paper); text-decoration: none; font-size: .84rem; font-weight: 700; }
+.admin-dashboard { display: grid; gap: 20px; }
+.admin-toolbar { display: flex; align-items: end; justify-content: space-between; }
+.admin-toolbar h2 { margin: 0; font-family: "Fraunces", Georgia, serif; font-size: 2.3rem; }
+.create-session-card, .admin-ranking { border: 1px solid var(--line); border-radius: 18px; padding: 22px; background: var(--paper); box-shadow: 0 8px 30px rgba(42,55,54,.08); }
+.create-session-card h3 { margin-top: 0; }
+.create-session-form { display: grid; grid-template-columns: 1.4fr .8fr auto; gap: 12px; align-items: end; }
+.create-session-form label { display: grid; gap: 6px; font-size: .78rem; font-weight: 700; }
+.create-session-form input { border: 1.5px solid var(--line); border-radius: 9px; padding: 11px 12px; font: inherit; }
+.create-session-form .primary-button { margin: 0; }
+.admin-session-list { display: grid; gap: 12px; }
+.admin-session-card { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-left: 5px solid var(--teal); border-radius: 14px; padding: 19px 21px; background: var(--paper); box-shadow: 0 5px 20px rgba(42,55,54,.07); }
+.admin-session-card.is-closed { border-left-color: #9aa3a2; opacity: .82; }
+.admin-session-card h3 { margin: 5px 0; }.admin-session-card p { margin: 7px 0 0; color: var(--muted); font-size: .8rem; }
+.admin-session-card code { color: var(--teal-dark); font-weight: 700; }.session-status { color: var(--teal-dark); font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.is-closed .session-status { color: var(--muted); }.session-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.compact-button { margin: 0; padding: 9px 13px; box-shadow: none; }.admin-ranking { margin-top: 5px; }
+@media (max-width: 760px) {
+  .admin-hero { grid-template-columns: 58px 1fr; }.admin-hero .back-link { grid-column: 1 / -1; text-align: center; }
+  .create-session-form { grid-template-columns: 1fr; }.admin-session-card { align-items: flex-start; flex-direction: column; }.session-actions { justify-content: flex-start; }
+}

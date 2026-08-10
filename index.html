@@ -31,8 +31,10 @@
         <p>Introduce tus datos para guardar tu resultado. En la clasificación aparecerá solamente tu nombre y la inicial de tu apellido.</p>
       </div>
       <form id="registrationForm" class="registration-form">
-        <label>Código de la sesión
-          <input id="sessionCode" name="sessionCode" value="L1-CONTEXTOS" maxlength="24" required autocomplete="off">
+        <label>Competición
+          <select id="sessionCode" name="sessionCode" required disabled>
+            <option value="">Cargando competiciones…</option>
+          </select>
         </label>
         <div class="form-row">
           <label>Nombre
@@ -117,6 +119,6 @@
     </section>
     <p class="tip"><span aria-hidden="true">⌨</span> También puedes usar <kbd>Tab</kbd> y <kbd>Enter</kbd> para jugar.</p>
   </main>
-  <script src="script.js?v=2"></script>
+  <script src="script.js?v=3"></script>
 </body>
 </html>
