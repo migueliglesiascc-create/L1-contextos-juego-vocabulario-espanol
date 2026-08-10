@@ -1,6 +1,10 @@
 # L1 · Contextos · Juego de vocabulario español
 
-Juego web accesible para emparejar expresiones en español con su significado en inglés. Incluye las 23 entradas visibles en la hoja de vocabulario, rondas aleatorias, retroalimentación inmediata, puntuación, sonido opcional y navegación por teclado.
+Juego web accesible para emparejar expresiones en español con su significado en inglés. Incluye las 23 entradas visibles en la hoja de vocabulario, rondas aleatorias, puntuación, sonido opcional, navegación por teclado y competiciones entre clases conectadas a Supabase.
+
+## Competición
+
+La sesión inicial usa el código `L1-CONTEXTOS`. El sistema registra el tiempo en el servidor, los aciertos y los fallos, y muestra un Top 25 general, la clasificación por clases y los tres mejores estudiantes de cada clase. El ranking público muestra solamente el nombre y la inicial del apellido.
 
 ## Publicación con GitHub Pages
 
@@ -23,4 +27,4 @@ Juego web accesible para emparejar expresiones en español con su significado en
 ></iframe>
 ```
 
-Todo el juego funciona en el navegador y no recopila datos del estudiante.
+Los resultados se almacenan en el proyecto privado de Supabase asociado al juego. Las tablas tienen Row Level Security activado y el navegador solo puede usar las funciones públicas necesarias para participar y consultar clasificaciones anonimizadas.
