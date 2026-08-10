@@ -24,10 +24,42 @@
       </button>
     </header>
 
-    <section class="game-card" aria-labelledby="game-title">
+    <section class="registration-card" id="registrationCard" aria-labelledby="registrationTitle">
+      <div class="registration-copy">
+        <p class="eyebrow">COMPETICIÓN ENTRE CLASES</p>
+        <h2 id="registrationTitle">¿Listo para jugar?</h2>
+        <p>Introduce tus datos para guardar tu resultado. En la clasificación aparecerá solamente tu nombre y la inicial de tu apellido.</p>
+      </div>
+      <form id="registrationForm" class="registration-form">
+        <label>Código de la sesión
+          <input id="sessionCode" name="sessionCode" value="L1-CONTEXTOS" maxlength="24" required autocomplete="off">
+        </label>
+        <div class="form-row">
+          <label>Nombre
+            <input id="firstName" name="firstName" maxlength="40" required autocomplete="given-name">
+          </label>
+          <label>Apellido
+            <input id="lastName" name="lastName" maxlength="60" required autocomplete="family-name">
+          </label>
+        </div>
+        <label>Clase
+          <select id="classSelect" name="classId" required disabled>
+            <option value="">Cargando clases…</option>
+          </select>
+        </label>
+        <label class="consent-row">
+          <input id="consent" type="checkbox" required>
+          <span>Acepto que mi nombre y la inicial de mi apellido aparezcan en la clasificación.</span>
+        </label>
+        <p class="form-message" id="formMessage" role="status" aria-live="polite"></p>
+        <button class="primary-button start-button" id="startButton" type="submit">Empezar la partida <span aria-hidden="true">→</span></button>
+      </form>
+    </section>
+
+    <section class="game-card hidden" id="gameCard" aria-labelledby="game-title">
       <h2 class="sr-only" id="game-title">Juego de emparejar vocabulario</h2>
       <div class="status-bar">
-        <div class="round-copy"><span>RONDA</span><strong id="roundNumber">1</strong><span>DE</span><strong id="roundTotal">4</strong></div>
+        <div class="round-copy"><span id="sessionName">SESIÓN</span><span>·</span><span>RONDA</span><strong id="roundNumber">1</strong><span>DE</span><strong id="roundTotal">4</strong></div>
         <div class="score-copy"><span id="matchedCount">0</span><span>/</span><span id="pairCount">6</span><span>parejas</span></div>
       </div>
       <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
@@ -59,11 +91,29 @@
         <h2>¡Excelente trabajo!</h2>
         <p>Has practicado las <strong id="totalLearned">21</strong> expresiones de esta lección.</p>
         <div class="results">
+          <div><strong id="finalScore">—</strong><span>puntos</span></div>
           <div><strong id="finalAccuracy">100%</strong><span>precisión</span></div>
-          <div><strong id="finalAttempts">21</strong><span>intentos</span></div>
+          <div><strong id="finalMistakes">0</strong><span>fallos</span></div>
+          <div><strong id="finalTime">—</strong><span>tiempo</span></div>
         </div>
-        <button class="primary-button" id="playAgain" type="button">Jugar de nuevo <span aria-hidden="true">↻</span></button>
+        <p class="saving-status" id="savingStatus" aria-live="polite">Guardando tu resultado…</p>
+        <button class="primary-button" id="playAgain" type="button">Nuevo intento <span aria-hidden="true">↻</span></button>
       </div>
+    </section>
+
+    <section class="leaderboard-section hidden" id="leaderboardSection" aria-labelledby="leaderboardTitle">
+      <div class="leaderboard-heading">
+        <div><p class="eyebrow">RESULTADOS EN DIRECTO</p><h2 id="leaderboardTitle">Clasificación</h2></div>
+        <button class="refresh-button" id="refreshLeaderboard" type="button" title="Actualizar clasificación">↻ Actualizar</button>
+      </div>
+      <div class="leaderboard-tabs" role="tablist" aria-label="Tipos de clasificación">
+        <button class="tab-button active" type="button" role="tab" aria-selected="true" data-panel="overallPanel">Top 25</button>
+        <button class="tab-button" type="button" role="tab" aria-selected="false" data-panel="classesPanel">Por clases</button>
+        <button class="tab-button" type="button" role="tab" aria-selected="false" data-panel="podiumsPanel">Podios</button>
+      </div>
+      <div class="ranking-panel" id="overallPanel" role="tabpanel"><div class="loading-ranking">Cargando clasificación…</div></div>
+      <div class="ranking-panel hidden" id="classesPanel" role="tabpanel"></div>
+      <div class="ranking-panel hidden" id="podiumsPanel" role="tabpanel"></div>
     </section>
     <p class="tip"><span aria-hidden="true">⌨</span> También puedes usar <kbd>Tab</kbd> y <kbd>Enter</kbd> para jugar.</p>
   </main>

@@ -1,3 +1,6 @@
+const SUPABASE_URL = "https://nxpznzywxvfccosecmab.supabase.co";
+const SUPABASE_KEY = "sb_publishable_RDuz6BsBu9zIEDjylAMLcQ_7ot5eW2i";
+
 const vocabulary = [
   { es: "Buenos días.", en: "Good morning." },
   { es: "Buenas tardes.", en: "Good afternoon." },
@@ -25,14 +28,9 @@ const vocabulary = [
 ];
 
 const PAIRS_PER_ROUND = 6;
-let rounds = [];
-let currentRound = 0;
+let rounds = [], currentRound = 0, matched = 0, attempts = 0, totalMatches = 0;
 let selected = { es: null, en: null };
-let matched = 0;
-let attempts = 0;
-let totalMatches = 0;
-let locked = false;
-let soundEnabled = true;
+let locked = false, soundEnabled = true, currentCompetition = null, currentRunId = null;
 
 const $ = (id) => document.getElementById(id);
 const shuffle = (items) => {
@@ -44,17 +42,74 @@ const shuffle = (items) => {
   return copy;
 };
 
+async function rpc(name, body) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+    body: JSON.stringify(body)
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.message || "No se pudo conectar con la competición.");
+  return data;
+}
+
+async function loadCompetition() {
+  const code = $("sessionCode").value.trim().toUpperCase();
+  $("sessionCode").value = code;
+  $("classSelect").disabled = true;
+  $("classSelect").innerHTML = '<option value="">Cargando clases…</option>';
+  try {
+    const competition = await rpc("get_competition", { p_code: code });
+    if (!competition) throw new Error("No encontramos una sesión con ese código.");
+    currentCompetition = competition;
+    $("classSelect").innerHTML = '<option value="">Selecciona tu clase</option>' +
+      competition.classes.map(item => `<option value="${item.id}">${escapeHtml(item.name)}</option>`).join("");
+    $("classSelect").disabled = false;
+    $("formMessage").textContent = competition.name;
+    $("formMessage").className = "form-message good";
+    localStorage.setItem("competitionCode", code);
+  } catch (error) {
+    currentCompetition = null;
+    $("classSelect").innerHTML = '<option value="">Sesión no disponible</option>';
+    $("formMessage").textContent = error.message;
+    $("formMessage").className = "form-message bad";
+  }
+}
+
+async function registerStudent(event) {
+  event.preventDefault();
+  const button = $("startButton");
+  button.disabled = true; button.textContent = "Preparando partida…";
+  if (!currentCompetition || currentCompetition.code !== $("sessionCode").value.trim().toUpperCase()) await loadCompetition();
+  if (!currentCompetition) { button.disabled = false; button.innerHTML = 'Empezar la partida <span aria-hidden="true">→</span>'; return; }
+  try {
+    currentRunId = await rpc("start_game", {
+      p_code: currentCompetition.code,
+      p_class_id: $("classSelect").value,
+      p_first_name: $("firstName").value.trim(),
+      p_last_name: $("lastName").value.trim()
+    });
+    $("registrationCard").classList.add("hidden");
+    $("gameCard").classList.remove("hidden");
+    $("leaderboardSection").classList.add("hidden");
+    $("sessionName").textContent = currentCompetition.name;
+    startGame();
+  } catch (error) {
+    $("formMessage").textContent = error.message;
+    $("formMessage").className = "form-message bad";
+  } finally {
+    button.disabled = false; button.innerHTML = 'Empezar la partida <span aria-hidden="true">→</span>';
+  }
+}
+
 function tone(success) {
   if (!soundEnabled || !window.AudioContext && !window.webkitAudioContext) return;
   const Audio = window.AudioContext || window.webkitAudioContext;
-  const context = new Audio();
-  const oscillator = context.createOscillator();
-  const gain = context.createGain();
+  const context = new Audio(), oscillator = context.createOscillator(), gain = context.createGain();
   oscillator.connect(gain); gain.connect(context.destination);
   oscillator.frequency.setValueAtTime(success ? 520 : 190, context.currentTime);
   if (success) oscillator.frequency.exponentialRampToValueAtTime(720, context.currentTime + .12);
-  gain.gain.setValueAtTime(.07, context.currentTime);
-  gain.gain.exponentialRampToValueAtTime(.001, context.currentTime + .2);
+  gain.gain.setValueAtTime(.07, context.currentTime); gain.gain.exponentialRampToValueAtTime(.001, context.currentTime + .2);
   oscillator.start(); oscillator.stop(context.currentTime + .2);
 }
 
@@ -63,102 +118,124 @@ function startGame() {
   const shuffled = shuffle(vocabulary.map((pair, id) => ({ ...pair, id })));
   for (let i = 0; i < shuffled.length; i += PAIRS_PER_ROUND) rounds.push(shuffled.slice(i, i + PAIRS_PER_ROUND));
   currentRound = 0; attempts = 0; totalMatches = 0;
-  $("gameComplete").classList.add("hidden");
-  $("roundComplete").classList.add("hidden");
-  $("board").classList.remove("hidden");
+  $("gameComplete").classList.add("hidden"); $("roundComplete").classList.add("hidden"); $("board").classList.remove("hidden");
   renderRound();
 }
 
 function renderRound() {
   selected = { es: null, en: null }; matched = 0; locked = false;
   const pairs = rounds[currentRound];
-  $("roundNumber").textContent = currentRound + 1;
-  $("roundTotal").textContent = rounds.length;
-  $("pairCount").textContent = pairs.length;
-  $("matchedCount").textContent = 0;
-  $("progressFill").style.width = "0%";
-  $("feedback").textContent = "Elige una tarjeta de cada columna.";
-  $("feedback").className = "feedback";
+  $("roundNumber").textContent = currentRound + 1; $("roundTotal").textContent = rounds.length;
+  $("pairCount").textContent = pairs.length; $("matchedCount").textContent = 0; $("progressFill").style.width = "0%";
+  $("feedback").textContent = "Elige una tarjeta de cada columna."; $("feedback").className = "feedback";
   $("spanishCards").replaceChildren(...shuffle(pairs).map(pair => makeCard(pair, "es")));
   $("englishCards").replaceChildren(...shuffle(pairs).map(pair => makeCard(pair, "en")));
 }
 
 function makeCard(pair, language) {
   const card = document.createElement("button");
-  card.type = "button";
-  card.className = "word-card";
-  card.dataset.id = pair.id;
-  card.dataset.language = language;
-  card.textContent = pair[language];
-  card.setAttribute("aria-pressed", "false");
+  card.type = "button"; card.className = "word-card"; card.dataset.id = pair.id; card.dataset.language = language;
+  card.textContent = pair[language]; card.setAttribute("aria-pressed", "false");
   card.addEventListener("click", () => selectCard(card));
   return card;
 }
 
 function selectCard(card) {
   if (locked || card.classList.contains("matched")) return;
-  const language = card.dataset.language;
-  const old = selected[language];
+  const language = card.dataset.language, old = selected[language];
   if (old) { old.classList.remove("selected"); old.setAttribute("aria-pressed", "false"); }
   if (old === card) { selected[language] = null; return; }
-  selected[language] = card;
-  card.classList.add("selected"); card.setAttribute("aria-pressed", "true");
+  selected[language] = card; card.classList.add("selected"); card.setAttribute("aria-pressed", "true");
   if (selected.es && selected.en) checkPair();
 }
 
 function checkPair() {
   locked = true; attempts++;
-  const isMatch = selected.es.dataset.id === selected.en.dataset.id;
-  if (isMatch) {
+  if (selected.es.dataset.id === selected.en.dataset.id) {
     matched++; totalMatches++; tone(true);
     [selected.es, selected.en].forEach(card => { card.classList.remove("selected"); card.classList.add("matched"); card.disabled = true; });
-    $("matchedCount").textContent = matched;
-    $("progressFill").style.width = `${matched / rounds[currentRound].length * 100}%`;
-    $("feedback").textContent = "¡Correcto! Has encontrado una pareja.";
-    $("feedback").className = "feedback good";
+    $("matchedCount").textContent = matched; $("progressFill").style.width = `${matched / rounds[currentRound].length * 100}%`;
+    $("feedback").textContent = "¡Correcto! Has encontrado una pareja."; $("feedback").className = "feedback good";
     selected = { es: null, en: null }; locked = false;
     if (matched === rounds[currentRound].length) setTimeout(finishRound, 550);
   } else {
-    tone(false);
-    $("feedback").textContent = "No es esa pareja. ¡Inténtalo otra vez!";
-    $("feedback").className = "feedback bad";
+    tone(false); $("feedback").textContent = "No es esa pareja. ¡Inténtalo otra vez!"; $("feedback").className = "feedback bad";
     [selected.es, selected.en].forEach(card => card.classList.add("wrong"));
-    setTimeout(() => {
-      [selected.es, selected.en].forEach(card => { card.classList.remove("selected", "wrong"); card.setAttribute("aria-pressed", "false"); });
-      selected = { es: null, en: null }; locked = false;
-    }, 650);
+    setTimeout(() => { [selected.es, selected.en].forEach(card => { card.classList.remove("selected", "wrong"); card.setAttribute("aria-pressed", "false"); }); selected = { es: null, en: null }; locked = false; }, 650);
   }
 }
 
 function finishRound() {
   $("roundSummary").textContent = `Has encontrado ${matched} parejas en esta ronda.`;
-  $("nextRound").innerHTML = currentRound === rounds.length - 1 ? "Ver resultados <span aria-hidden=\"true\">→</span>" : "Siguiente ronda <span aria-hidden=\"true\">→</span>";
-  $("roundComplete").classList.remove("hidden");
-  $("nextRound").focus();
+  $("nextRound").innerHTML = currentRound === rounds.length - 1 ? 'Ver resultados <span aria-hidden="true">→</span>' : 'Siguiente ronda <span aria-hidden="true">→</span>';
+  $("roundComplete").classList.remove("hidden"); $("nextRound").focus();
 }
 
-function advance() {
-  $("roundComplete").classList.add("hidden");
-  if (++currentRound < rounds.length) renderRound(); else finishGame();
-}
+function advance() { $("roundComplete").classList.add("hidden"); if (++currentRound < rounds.length) renderRound(); else finishGame(); }
 
-function finishGame() {
-  $("board").classList.add("hidden");
-  $("gameComplete").classList.remove("hidden");
-  $("totalLearned").textContent = vocabulary.length;
-  $("finalAttempts").textContent = attempts;
+async function finishGame() {
+  $("board").classList.add("hidden"); $("gameComplete").classList.remove("hidden");
+  const mistakes = attempts - totalMatches;
+  $("totalLearned").textContent = vocabulary.length; $("finalMistakes").textContent = mistakes;
   $("finalAccuracy").textContent = `${Math.round(totalMatches / attempts * 100)}%`;
-  $("playAgain").focus();
+  $("savingStatus").textContent = "Guardando tu resultado…";
+  try {
+    const result = await rpc("complete_game", { p_run_id: currentRunId, p_correct_matches: vocabulary.length, p_mistakes: mistakes });
+    $("finalScore").textContent = result.score; $("finalAccuracy").textContent = `${result.accuracy}%`;
+    $("finalTime").textContent = formatTime(result.duration_seconds); $("savingStatus").textContent = "Resultado guardado correctamente.";
+  } catch (error) {
+    $("savingStatus").textContent = `No se pudo guardar: ${error.message}`;
+  }
+  $("leaderboardSection").classList.remove("hidden"); await loadLeaderboards(); $("playAgain").focus();
 }
 
+async function loadLeaderboards() {
+  try {
+    const [overall, classes, podiums] = await Promise.all([
+      rpc("get_leaderboard", { p_code: currentCompetition.code, p_limit: 25 }),
+      rpc("get_class_standings", { p_code: currentCompetition.code }),
+      rpc("get_class_podiums", { p_code: currentCompetition.code })
+    ]);
+    $("overallPanel").innerHTML = rankingTable(overall);
+    $("classesPanel").innerHTML = classTable(classes);
+    $("podiumsPanel").innerHTML = podiumCards(podiums);
+  } catch (error) { $("overallPanel").innerHTML = `<p class="empty-ranking">${escapeHtml(error.message)}</p>`; }
+}
+
+function rankingTable(rows) {
+  if (!rows.length) return '<p class="empty-ranking">Aún no hay resultados. ¡Puedes inaugurar la clasificación!</p>';
+  return `<div class="table-wrap"><table><thead><tr><th>#</th><th>Estudiante</th><th>Clase</th><th>Puntos</th><th>Fallos</th><th>Tiempo</th></tr></thead><tbody>${rows.map(row => `<tr><td class="rank rank-${row.rank_position}">${medal(row.rank_position)}</td><td><strong>${escapeHtml(row.display_name)}</strong></td><td><span class="class-dot" style="--class-color:${row.class_color}"></span>${escapeHtml(row.class_name)}</td><td><strong>${row.score}</strong></td><td>${row.mistakes}</td><td>${formatTime(row.duration_seconds)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+
+function classTable(rows) {
+  return `<div class="team-grid">${rows.map(row => `<article class="team-card" style="--class-color:${row.class_color}"><span class="team-rank">${medal(row.rank_position)}</span><h3>${escapeHtml(row.class_name)}</h3><strong>${row.team_score ?? '—'}</strong><small>${row.qualifying_students} de 3 resultados</small></article>`).join("")}</div><p class="ranking-note">La puntuación de cada clase es el promedio de sus tres mejores estudiantes.</p>`;
+}
+
+function podiumCards(rows) {
+  if (!rows.length) return '<p class="empty-ranking">Los podios aparecerán cuando se registren resultados.</p>';
+  const groups = Object.groupBy ? Object.groupBy(rows, row => row.class_name) : rows.reduce((all, row) => ((all[row.class_name] ||= []).push(row), all), {});
+  return `<div class="podium-grid">${Object.entries(groups).map(([name, students]) => `<article class="podium-card" style="--class-color:${students[0].class_color}"><h3>${escapeHtml(name)}</h3>${students.map(s => `<div><span>${medal(s.class_position)}</span><strong>${escapeHtml(s.display_name)}</strong><small>${s.score} pts</small></div>`).join("")}</article>`).join("")}</div>`;
+}
+
+function formatTime(seconds) { const min = Math.floor(seconds / 60), sec = seconds % 60; return `${min}:${String(sec).padStart(2, "0")}`; }
+function medal(rank) { return ({ 1: "🥇", 2: "🥈", 3: "🥉" })[rank] || rank; }
+function escapeHtml(value) { const div = document.createElement("div"); div.textContent = String(value ?? ""); return div.innerHTML; }
+
+$("registrationForm").addEventListener("submit", registerStudent);
+$("sessionCode").addEventListener("change", loadCompetition);
 $("nextRound").addEventListener("click", advance);
-$("playAgain").addEventListener("click", startGame);
+$("playAgain").addEventListener("click", () => { $("gameCard").classList.add("hidden"); $("leaderboardSection").classList.add("hidden"); $("registrationCard").classList.remove("hidden"); currentRunId = null; });
+$("refreshLeaderboard").addEventListener("click", loadLeaderboards);
+document.querySelectorAll(".tab-button").forEach(button => button.addEventListener("click", () => {
+  document.querySelectorAll(".tab-button").forEach(item => { item.classList.toggle("active", item === button); item.setAttribute("aria-selected", item === button); });
+  document.querySelectorAll(".ranking-panel").forEach(panel => panel.classList.toggle("hidden", panel.id !== button.dataset.panel));
+}));
 $("soundButton").addEventListener("click", () => {
-  soundEnabled = !soundEnabled;
-  $("soundButton").setAttribute("aria-pressed", soundEnabled);
+  soundEnabled = !soundEnabled; $("soundButton").setAttribute("aria-pressed", soundEnabled);
   $("soundButton").title = soundEnabled ? "Desactivar sonidos" : "Activar sonidos";
-  $("soundIcon").textContent = soundEnabled ? "🔊" : "🔇";
-  $("soundLabel").textContent = soundEnabled ? "Sonidos activados" : "Sonidos desactivados";
+  $("soundIcon").textContent = soundEnabled ? "🔊" : "🔇"; $("soundLabel").textContent = soundEnabled ? "Sonidos activados" : "Sonidos desactivados";
 });
 
-startGame();
+const requestedSession = new URLSearchParams(location.search).get("session") || localStorage.getItem("competitionCode") || "L1-CONTEXTOS";
+$("sessionCode").value = requestedSession.toUpperCase();
+loadCompetition();
