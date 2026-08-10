@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Juego de vocabulario de la Lección 1: Contextos. Empareja expresiones en español con su significado en inglés.">
+  <title>Contextos · Empareja el vocabulario</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Fraunces:opsz,wght@9..144,700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">LECCIÓN 1 · CONTEXTOS</p>
+        <h1>Encuentra su pareja</h1>
+        <p class="intro">Selecciona una expresión en español y después su significado en inglés.</p>
+      </div>
+      <button class="sound-button" id="soundButton" type="button" aria-pressed="true" title="Desactivar sonidos">
+        <span aria-hidden="true" id="soundIcon">🔊</span><span class="sr-only" id="soundLabel">Sonidos activados</span>
+      </button>
+    </header>
+
+    <section class="game-card" aria-labelledby="game-title">
+      <h2 class="sr-only" id="game-title">Juego de emparejar vocabulario</h2>
+      <div class="status-bar">
+        <div class="round-copy"><span>RONDA</span><strong id="roundNumber">1</strong><span>DE</span><strong id="roundTotal">4</strong></div>
+        <div class="score-copy"><span id="matchedCount">0</span><span>/</span><span id="pairCount">6</span><span>parejas</span></div>
+      </div>
+      <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+
+      <p class="feedback" id="feedback" role="status" aria-live="polite">Elige una tarjeta de cada columna.</p>
+
+      <div class="board" id="board">
+        <section class="column" aria-labelledby="spanish-heading">
+          <h3 id="spanish-heading"><span aria-hidden="true">ES</span> Español</h3>
+          <div class="card-list" id="spanishCards"></div>
+        </section>
+        <div class="divider" aria-hidden="true"><span>↔</span></div>
+        <section class="column" aria-labelledby="english-heading">
+          <h3 id="english-heading"><span aria-hidden="true">EN</span> English</h3>
+          <div class="card-list" id="englishCards"></div>
+        </section>
+      </div>
+
+      <div class="round-complete hidden" id="roundComplete" role="status">
+        <div class="celebration" aria-hidden="true">✦</div>
+        <h2>¡Ronda completada!</h2>
+        <p id="roundSummary">Has encontrado todas las parejas.</p>
+        <button class="primary-button" id="nextRound" type="button">Siguiente ronda <span aria-hidden="true">→</span></button>
+      </div>
+
+      <div class="game-complete hidden" id="gameComplete" role="status">
+        <div class="trophy" aria-hidden="true">🏆</div>
+        <p class="eyebrow">JUEGO COMPLETADO</p>
+        <h2>¡Excelente trabajo!</h2>
+        <p>Has practicado las <strong id="totalLearned">21</strong> expresiones de esta lección.</p>
+        <div class="results">
+          <div><strong id="finalAccuracy">100%</strong><span>precisión</span></div>
+          <div><strong id="finalAttempts">21</strong><span>intentos</span></div>
+        </div>
+        <button class="primary-button" id="playAgain" type="button">Jugar de nuevo <span aria-hidden="true">↻</span></button>
+      </div>
+    </section>
+    <p class="tip"><span aria-hidden="true">⌨</span> También puedes usar <kbd>Tab</kbd> y <kbd>Enter</kbd> para jugar.</p>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
