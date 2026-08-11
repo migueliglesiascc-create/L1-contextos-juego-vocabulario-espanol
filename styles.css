@@ -6,11 +6,32 @@
   --teal: #087f78;
   --teal-dark: #065f5a;
   --teal-pale: #dff3ee;
+  --teal-rgb: 8, 127, 120;
+  --teal-accent: #37a990;
   --coral: #db6b4f;
   --red: #b94637;
   --red-pale: #fff0ec;
   --line: #ded8cc;
   --shadow: 0 18px 55px rgba(42, 55, 54, .12);
+}
+
+body.student-theme {
+  --teal: #079fc3;
+  --teal-dark: #08748c;
+  --teal-pale: #def5fb;
+  --teal-rgb: 7, 159, 195;
+  --teal-accent: #52c7dc;
+}
+
+body.admin-theme {
+  --ink: #10282e;
+  --muted: #536b71;
+  --cream: #e9f0f0;
+  --teal: #07566b;
+  --teal-dark: #043b4a;
+  --teal-pale: #dcecef;
+  --teal-rgb: 7, 86, 107;
+  --teal-accent: #237b8d;
 }
 
 * { box-sizing: border-box; }
@@ -20,7 +41,7 @@ body {
   color: var(--ink);
   background:
     radial-gradient(circle at 12% 8%, rgba(219,107,79,.12), transparent 24rem),
-    radial-gradient(circle at 90% 88%, rgba(8,127,120,.12), transparent 28rem),
+    radial-gradient(circle at 90% 88%, rgba(var(--teal-rgb),.12), transparent 28rem),
     var(--cream);
   font-family: "DM Sans", system-ui, sans-serif;
 }
@@ -42,7 +63,7 @@ h1 { margin: 0; font-family: "Fraunces", Georgia, serif; font-size: clamp(2.15re
 .registration-form label { display: grid; gap: 6px; color: var(--ink); font-size: .82rem; font-weight: 700; }
 .registration-form input:not([type="checkbox"]), .registration-form select { width: 100%; border: 1.5px solid var(--line); border-radius: 10px; padding: 11px 12px; color: var(--ink); background: white; font: inherit; }
 #classSelect { font-variant-numeric: slashed-zero; font-feature-settings: "zero" 1; }
-.registration-form input:focus, .registration-form select:focus { border-color: var(--teal); outline: 3px solid rgba(8,127,120,.14); }
+.registration-form input:focus, .registration-form select:focus { border-color: var(--teal); outline: 3px solid rgba(var(--teal-rgb),.14); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .consent-row { grid-template-columns: 18px 1fr !important; align-items: start; color: var(--muted) !important; font-weight: 500 !important; line-height: 1.4; }
 .consent-row input { width: 17px; height: 17px; accent-color: var(--teal); }
@@ -55,7 +76,7 @@ h1 { margin: 0; font-family: "Fraunces", Georgia, serif; font-size: clamp(2.15re
 .round-copy strong { color: var(--ink); font-size: 1rem; }
 .score-copy span:first-child { color: var(--teal); }
 .progress-track { height: 5px; margin-top: 12px; overflow: hidden; border-radius: 99px; background: #e8e3d9; }
-.progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--teal), #37a990); transition: width .35s ease; }
+.progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--teal), var(--teal-accent)); transition: width .35s ease; }
 .feedback { min-height: 24px; margin: 19px 0 15px; text-align: center; color: var(--muted); font-size: .93rem; }
 .feedback.good { color: var(--teal-dark); font-weight: 700; }
 .feedback.bad { color: var(--red); font-weight: 700; }
@@ -66,7 +87,7 @@ h1 { margin: 0; font-family: "Fraunces", Georgia, serif; font-size: clamp(2.15re
 .card-list { display: grid; gap: 10px; }
 .word-card { width: 100%; min-height: 62px; border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 16px; color: var(--ink); background: white; text-align: left; cursor: pointer; box-shadow: 0 2px 0 rgba(21,42,45,.05); transition: border-color .15s, background .15s, transform .15s, opacity .25s; }
 .word-card:hover:not(:disabled) { transform: translateY(-2px); border-color: #7eb9b3; }
-.word-card:focus-visible { outline: 3px solid rgba(8,127,120,.28); outline-offset: 2px; }
+.word-card:focus-visible { outline: 3px solid rgba(var(--teal-rgb),.28); outline-offset: 2px; }
 .word-card.selected { border-color: var(--teal); background: var(--teal-pale); box-shadow: inset 0 0 0 1px var(--teal); }
 .english .word-card.selected { border-color: var(--coral); background: #fff0ea; box-shadow: inset 0 0 0 1px var(--coral); }
 .word-card.wrong { border-color: var(--red); background: var(--red-pale); animation: shake .32s ease; }
@@ -77,7 +98,7 @@ h1 { margin: 0; font-family: "Fraunces", Georgia, serif; font-size: clamp(2.15re
 .round-complete h2, .game-complete h2 { margin: 8px 0; font-family: "Fraunces", Georgia, serif; font-size: clamp(2rem, 5vw, 3.3rem); }
 .round-complete p, .game-complete > p { color: var(--muted); }
 .celebration, .trophy { font-size: 3rem; }
-.primary-button { margin-top: 14px; border: 0; border-radius: 11px; padding: 13px 21px; color: white; background: var(--teal); font-weight: 700; cursor: pointer; box-shadow: 0 6px 18px rgba(8,127,120,.22); transition: .18s ease; }
+.primary-button { margin-top: 14px; border: 0; border-radius: 11px; padding: 13px 21px; color: white; background: var(--teal); font-weight: 700; cursor: pointer; box-shadow: 0 6px 18px rgba(var(--teal-rgb),.22); transition: .18s ease; }
 .primary-button:hover { background: var(--teal-dark); transform: translateY(-2px); }
 .results { display: flex; gap: 10px; margin: 18px 0 4px; }
 .results div { display: flex; min-width: 120px; flex-direction: column; padding: 13px 18px; border-radius: 12px; background: var(--cream); }
