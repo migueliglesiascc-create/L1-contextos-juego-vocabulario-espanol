@@ -5,6 +5,7 @@ const $ = id => document.getElementById(id);
 const t = (key, vars) => window.i18n?.t(key, vars) || key;
 let competitions = [];
 let currentResultsCode = null;
+let currentQrCode = null;
 
 async function initialize() {
   const { data: { session } } = await client.auth.getSession();
@@ -45,6 +46,7 @@ async function loadSessions() {
   document.querySelectorAll("[data-toggle]").forEach(button => button.addEventListener("click", toggleSession));
   document.querySelectorAll("[data-results]").forEach(button => button.addEventListener("click", showResults));
   document.querySelectorAll("[data-copy]").forEach(button => button.addEventListener("click", copyStudentLink));
+  document.querySelectorAll("[data-qr]").forEach(button => button.addEventListener("click", showSessionQr));
 }
 
 function sessionCard(session) {
@@ -54,6 +56,7 @@ function sessionCard(session) {
     <div class="session-actions">
       <button class="refresh-button session-action-button results-button" data-results="${session.code}" type="button">${t("viewResults")}</button>
       ${session.is_active ? `<button class="refresh-button session-action-button copy-button" data-copy="${session.code}" type="button">${t("copyLink")}</button>` : ""}
+      <button class="refresh-button session-action-button qr-button" data-qr="${session.code}" type="button">QR</button>
       <button class="primary-button compact-button" data-toggle="${session.id}" data-active="${!session.is_active}" type="button">${t(session.is_active ? "closeSession" : "reopen")}</button>
     </div>
   </article>`;
@@ -109,9 +112,39 @@ async function resetStudentAttempts(event) {
 }
 
 async function copyStudentLink(event) {
-  const link = `${location.origin}${location.pathname.replace("admin.html", "")}?session=${event.currentTarget.dataset.copy}`;
+  const link = studentLink(event.currentTarget.dataset.copy);
   await navigator.clipboard.writeText(link);
   event.currentTarget.textContent = t("linkCopied");
+}
+
+function studentLink(code) {
+  return `${location.origin}${location.pathname.replace("admin.html", "")}?session=${encodeURIComponent(code)}`;
+}
+
+function showSessionQr(event) {
+  const code = event.currentTarget.dataset.qr;
+  const session = competitions.find(item => item.code === code);
+  const link = studentLink(code);
+  currentQrCode = code;
+  $("qrSessionName").textContent = session?.name || code;
+  $("qrSessionCode").textContent = code;
+  $("qrStudentLink").href = link;
+  $("qrCode").replaceChildren();
+  new QRCode($("qrCode"), {
+    text: link, width: 340, height: 340,
+    colorDark: "#043b4a", colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.H
+  });
+  $("qrDialog").showModal();
+}
+
+function downloadSessionQr() {
+  const canvas = $("qrCode").querySelector("canvas");
+  const image = $("qrCode").querySelector("img");
+  const source = canvas?.toDataURL("image/png") || image?.src;
+  if (!source) return;
+  const download = document.createElement("a");
+  download.href = source; download.download = `${currentQrCode || "contextos"}-QR.png`; download.click();
 }
 
 function showAdminError(message) { $("adminMessage").textContent = message; $("adminMessage").className = "form-message bad"; }
@@ -128,6 +161,9 @@ $("newSessionName").addEventListener("input", event => {
 $("newSessionCode").addEventListener("input", event => { event.target.dataset.edited = "true"; event.target.value = event.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ""); });
 $("closeRanking").addEventListener("click", () => $("adminRanking").classList.add("hidden"));
 $("signOut").addEventListener("click", async () => { await client.auth.signOut(); location.reload(); });
+$("downloadQr").addEventListener("click", downloadSessionQr);
+$("printQr").addEventListener("click", () => window.print());
+$("qrDialog").addEventListener("click", event => { if (event.target === $("qrDialog")) $("qrDialog").close(); });
 client.auth.onAuthStateChange((event, session) => { if (event === "SIGNED_IN" && session) setTimeout(authorize, 0); });
 initialize();
 document.addEventListener("languagechange", () => {
