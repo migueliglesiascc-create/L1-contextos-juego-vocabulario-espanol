@@ -1,0 +1,17 @@
+{
+  "name": "Contextos · Vocabulario",
+  "short_name": "Contextos",
+  "description": "Juego de vocabulario y competición entre clases.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f5efe3",
+  "theme_color": "#08a7df",
+  "icons": [
+    {
+      "src": "app-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
