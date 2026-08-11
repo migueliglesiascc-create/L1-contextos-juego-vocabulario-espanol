@@ -178,6 +178,15 @@ kbd { border: 1px solid #c9c2b5; border-bottom-width: 2px; border-radius: 4px; p
 .admin-session-card h3 { margin: 5px 0; }.admin-session-card p { margin: 7px 0 0; color: var(--muted); font-size: .8rem; }
 .admin-session-card code { color: var(--teal-dark); font-weight: 700; }.session-status { color: var(--teal-dark); font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 .is-closed .session-status { color: var(--muted); }.session-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.session-action-button { position: relative; min-width: 116px; border-color: rgba(var(--teal-rgb),.38); padding: 10px 15px; font-weight: 700; box-shadow: 0 5px 0 rgba(var(--teal-rgb),.18), 0 9px 18px rgba(16,40,46,.12); transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease, background .14s ease; }
+.session-action-button:hover { border-color: var(--teal); transform: translateY(-2px); box-shadow: 0 7px 0 rgba(var(--teal-rgb),.18), 0 12px 22px rgba(16,40,46,.16); }
+.session-action-button:active { transform: translateY(4px) scale(.98); box-shadow: 0 1px 0 rgba(var(--teal-rgb),.2), 0 3px 7px rgba(16,40,46,.12); }
+.session-action-button:focus-visible { outline: 3px solid rgba(var(--teal-rgb),.25); outline-offset: 3px; }
+.results-button { border-color: var(--teal); color: white; background: var(--teal); }
+.results-button:hover { color: white; background: var(--teal-dark); }
+.copy-button { color: var(--teal-dark); background: var(--teal-pale); }
+.results-button::before { content: "▤"; margin-right: 7px; font-size: 1rem; }
+.copy-button::before { content: "⧉"; margin-right: 7px; font-size: 1rem; }
 .compact-button { margin: 0; padding: 9px 13px; box-shadow: none; }.admin-ranking { margin-top: 5px; }
 @media (max-width: 760px) {
   .admin-hero { grid-template-columns: 58px 1fr; }.admin-hero .back-link { grid-column: 1 / -1; text-align: center; }

@@ -52,8 +52,8 @@ function sessionCard(session) {
   return `<article class="admin-session-card ${session.is_active ? "is-open" : "is-closed"}">
     <div><span class="session-status">${status}</span><h3>${escapeHtml(session.name)}</h3><code>${session.code}</code><p>${t("completedResults", { count: session.result_count })}</p></div>
     <div class="session-actions">
-      <button class="refresh-button" data-results="${session.code}" type="button">${t("viewResults")}</button>
-      ${session.is_active ? `<button class="refresh-button" data-copy="${session.code}" type="button">${t("copyLink")}</button>` : ""}
+      <button class="refresh-button session-action-button results-button" data-results="${session.code}" type="button">${t("viewResults")}</button>
+      ${session.is_active ? `<button class="refresh-button session-action-button copy-button" data-copy="${session.code}" type="button">${t("copyLink")}</button>` : ""}
       <button class="primary-button compact-button" data-toggle="${session.id}" data-active="${!session.is_active}" type="button">${t(session.is_active ? "closeSession" : "reopen")}</button>
     </div>
   </article>`;
