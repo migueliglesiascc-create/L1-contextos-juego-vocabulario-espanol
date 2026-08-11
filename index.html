@@ -48,6 +48,10 @@
             <input id="lastName" name="lastName" maxlength="60" required autocomplete="family-name">
           </label>
         </div>
+        <label>ID del estudiante
+          <input id="studentId" name="studentId" maxlength="24" minlength="3" pattern="[A-Za-z0-9-]{3,24}" required autocomplete="off" inputmode="numeric" aria-describedby="studentIdHelp">
+          <small id="studentIdHelp" class="field-help">Tu ID es privado: nunca aparecerá en la clasificación.</small>
+        </label>
         <label>Clase
           <select id="classSelect" name="classId" required disabled>
             <option value="">Cargando clases…</option>
@@ -123,6 +127,6 @@
     </section>
     <p class="tip"><span aria-hidden="true">⌨</span> También puedes usar <kbd>Tab</kbd> y <kbd>Enter</kbd> para jugar.</p>
   </main>
-  <script src="script.js?v=4"></script>
+  <script src="script.js?v=5"></script>
 </body>
 </html>

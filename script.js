@@ -107,9 +107,10 @@ async function registerStudent(event) {
   if (!currentCompetition || currentCompetition.code !== $("sessionCode").value) await loadCompetition();
   if (!currentCompetition) { button.disabled = false; button.innerHTML = 'Empezar la partida <span aria-hidden="true">→</span>'; return; }
   try {
-    const registration = await rpc("start_game_v2", {
+    const registration = await rpc("start_game_v3", {
       p_code: currentCompetition.code,
       p_class_id: $("classSelect").value,
+      p_student_id: $("studentId").value.trim(),
       p_first_name: $("firstName").value.trim(),
       p_last_name: $("lastName").value.trim()
     });

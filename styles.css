@@ -64,6 +64,7 @@ h1 { margin: 0; font-family: "Fraunces", Georgia, serif; font-size: clamp(2.15re
 .registration-form input:not([type="checkbox"]), .registration-form select { width: 100%; border: 1.5px solid var(--line); border-radius: 10px; padding: 11px 12px; color: var(--ink); background: white; font: inherit; }
 #classSelect { font-variant-numeric: slashed-zero; font-feature-settings: "zero" 1; }
 .registration-form input:focus, .registration-form select:focus { border-color: var(--teal); outline: 3px solid rgba(var(--teal-rgb),.14); }
+.field-help { display: block; margin-top: 5px; color: var(--muted); font-size: .72rem; font-weight: 400; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .consent-row { grid-template-columns: 18px 1fr !important; align-items: start; color: var(--muted) !important; font-weight: 500 !important; line-height: 1.4; }
 .consent-row input { width: 17px; height: 17px; accent-color: var(--teal); }
@@ -102,6 +103,9 @@ h1 { margin: 0; font-family: "Fraunces", Georgia, serif; font-size: clamp(2.15re
 .primary-button:hover { background: var(--teal-dark); transform: translateY(-2px); }
 .primary-button:disabled { cursor: not-allowed; opacity: .58; transform: none; }
 .attempt-pill { display: inline-flex; min-width: 44px; justify-content: center; border-radius: 999px; padding: 4px 9px; color: var(--teal-dark); background: var(--teal-pale); font-size: .78rem; font-weight: 700; }
+.reset-attempts-button { border: 1px solid #e5a99d; border-radius: 8px; padding: 7px 10px; color: var(--red); background: var(--red-pale); font: inherit; font-size: .75rem; font-weight: 700; cursor: pointer; }
+.reset-attempts-button:hover { border-color: var(--red); }
+.reset-attempts-button:disabled { cursor: wait; opacity: .6; }
 .results { display: flex; gap: 10px; margin: 18px 0 4px; }
 .results div { display: flex; min-width: 120px; flex-direction: column; padding: 13px 18px; border-radius: 12px; background: var(--cream); }
 .results strong { font-size: 1.35rem; }

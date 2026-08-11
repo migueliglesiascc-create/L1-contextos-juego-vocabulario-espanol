@@ -3,6 +3,7 @@ const SUPABASE_KEY = "sb_publishable_RDuz6BsBu9zIEDjylAMLcQ_7ot5eW2i";
 const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = id => document.getElementById(id);
 let competitions = [];
+let currentResultsCode = null;
 
 async function initialize() {
   const { data: { session } } = await client.auth.getSession();
@@ -74,13 +75,36 @@ async function toggleSession(event) {
 
 async function showResults(event) {
   const code = event.currentTarget.dataset.results;
+  await loadResults(code);
+}
+
+async function loadResults(code) {
+  currentResultsCode = code;
   const session = competitions.find(item => item.code === code);
   $("adminRankingTitle").textContent = session?.name || code; $("adminRanking").classList.remove("hidden");
   $("adminRankingContent").innerHTML = '<p class="loading-ranking">Cargando resultados…</p>';
-  const { data, error } = await client.rpc("get_leaderboard_v2", { p_code: code, p_limit: 25 });
+  const { data, error } = await client.rpc("admin_get_leaderboard_v2", { p_code: code, p_limit: 100 });
   if (error) return $("adminRankingContent").textContent = error.message;
-  $("adminRankingContent").innerHTML = data.length ? `<div class="table-wrap"><table><thead><tr><th>#</th><th>Estudiante</th><th>Clase</th><th>Mejor puntuación</th><th>Intentos</th><th>Fallos</th><th>Tiempo</th></tr></thead><tbody>${data.map(row => `<tr><td>${medal(row.rank_position)}</td><td><strong>${escapeHtml(row.display_name)}</strong></td><td>${escapeHtml(row.class_name)}</td><td>${row.score}</td><td><span class="attempt-pill">${row.attempt_count}/3</span></td><td>${row.mistakes}</td><td>${formatTime(row.duration_seconds)}</td></tr>`).join("")}</tbody></table></div>` : '<p class="empty-ranking">Esta sesión todavía no tiene resultados.</p>';
+  $("adminRankingContent").innerHTML = data.length ? `<div class="table-wrap"><table><thead><tr><th>#</th><th>Estudiante</th><th>ID</th><th>Clase</th><th>Mejor puntuación</th><th>Intentos</th><th>Fallos</th><th>Tiempo</th><th>Acción</th></tr></thead><tbody>${data.map(row => `<tr><td>${medal(row.rank_position)}</td><td><strong>${escapeHtml(row.display_name)}</strong></td><td><code>${escapeHtml(row.masked_student_id)}</code></td><td>${escapeHtml(row.class_name)}</td><td>${row.score}</td><td><span class="attempt-pill">${row.attempt_count}/3</span></td><td>${row.mistakes}</td><td>${formatTime(row.duration_seconds)}</td><td><button class="reset-attempts-button" type="button" data-reset-ref="${row.student_ref}" data-class-id="${row.class_id}" data-student-name="${encodeURIComponent(row.display_name)}">Reiniciar</button></td></tr>`).join("")}</tbody></table></div>` : '<p class="empty-ranking">Esta sesión todavía no tiene resultados.</p>';
+  document.querySelectorAll("[data-reset-ref]").forEach(button => button.addEventListener("click", resetStudentAttempts));
   $("adminRanking").scrollIntoView({ behavior: "smooth" });
+}
+
+async function resetStudentAttempts(event) {
+  const button = event.currentTarget;
+  const studentName = decodeURIComponent(button.dataset.studentName);
+  if (!confirm(`¿Reiniciar los intentos de ${studentName}?\n\nSe eliminarán sus partidas y su mejor puntuación de esta sesión.`)) return;
+  button.disabled = true; button.textContent = "Reiniciando…";
+  const { data, error } = await client.rpc("admin_reset_student_attempts", {
+    p_code: currentResultsCode,
+    p_class_id: button.dataset.classId,
+    p_student_ref: button.dataset.resetRef
+  });
+  if (error) { button.disabled = false; button.textContent = "Reiniciar"; return showAdminError(error.message); }
+  $("adminMessage").textContent = `Intentos reiniciados: ${data} partidas eliminadas.`;
+  $("adminMessage").className = "form-message good";
+  await loadSessions();
+  await loadResults(currentResultsCode);
 }
 
 async function copyStudentLink(event) {
