@@ -4,7 +4,7 @@ Juego web accesible para emparejar expresiones en español con su significado en
 
 ## Competición
 
-La sesión inicial usa el código `L1-CONTEXTOS`. El sistema registra el tiempo en el servidor, los aciertos y los fallos, y muestra un Top 25 general, la clasificación por clases y los tres mejores estudiantes de cada clase. El ranking público muestra solamente el nombre y la inicial del apellido.
+La sesión inicial usa el código `L1-CONTEXTOS`. Cada estudiante dispone de un máximo de tres intentos por sesión y clase. El sistema conserva todos los intentos, escoge automáticamente la mejor puntuación y muestra el número de intentos utilizados. El ranking público muestra solamente el nombre y la inicial del apellido.
 
 ## Publicación con GitHub Pages
 

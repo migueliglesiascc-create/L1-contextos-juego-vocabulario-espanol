@@ -8,7 +8,7 @@
   "theme_color": "#08a7df",
   "icons": [
     {
-      "src": "app-icon.png",
+      "src": "student-icon.png",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any maskable"

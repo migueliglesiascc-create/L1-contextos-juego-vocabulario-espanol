@@ -1,0 +1,10 @@
+{
+  "name": "Contextos · Panel del profesor",
+  "short_name": "Profesor",
+  "description": "Panel del profesor para administrar las competiciones de Contextos.",
+  "start_url": "./admin.html",
+  "display": "standalone",
+  "background_color": "#e9f0f0",
+  "theme_color": "#07566b",
+  "icons": [{"src": "teacher-icon.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any maskable"}]
+}

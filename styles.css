@@ -100,6 +100,8 @@ h1 { margin: 0; font-family: "Fraunces", Georgia, serif; font-size: clamp(2.15re
 .celebration, .trophy { font-size: 3rem; }
 .primary-button { margin-top: 14px; border: 0; border-radius: 11px; padding: 13px 21px; color: white; background: var(--teal); font-weight: 700; cursor: pointer; box-shadow: 0 6px 18px rgba(var(--teal-rgb),.22); transition: .18s ease; }
 .primary-button:hover { background: var(--teal-dark); transform: translateY(-2px); }
+.primary-button:disabled { cursor: not-allowed; opacity: .58; transform: none; }
+.attempt-pill { display: inline-flex; min-width: 44px; justify-content: center; border-radius: 999px; padding: 4px 9px; color: var(--teal-dark); background: var(--teal-pale); font-size: .78rem; font-weight: 700; }
 .results { display: flex; gap: 10px; margin: 18px 0 4px; }
 .results div { display: flex; min-width: 120px; flex-direction: column; padding: 13px 18px; border-radius: 12px; background: var(--cream); }
 .results strong { font-size: 1.35rem; }

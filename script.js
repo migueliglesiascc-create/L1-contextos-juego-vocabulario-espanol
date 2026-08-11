@@ -31,6 +31,7 @@ const PAIRS_PER_ROUND = 6;
 let rounds = [], currentRound = 0, matched = 0, attempts = 0, totalMatches = 0;
 let selected = { es: null, en: null };
 let locked = false, soundEnabled = true, currentCompetition = null, currentRunId = null;
+let currentAttemptNumber = 0, attemptsRemaining = 0;
 
 const $ = (id) => document.getElementById(id);
 const shuffle = (items) => {
@@ -106,12 +107,16 @@ async function registerStudent(event) {
   if (!currentCompetition || currentCompetition.code !== $("sessionCode").value) await loadCompetition();
   if (!currentCompetition) { button.disabled = false; button.innerHTML = 'Empezar la partida <span aria-hidden="true">→</span>'; return; }
   try {
-    currentRunId = await rpc("start_game", {
+    const registration = await rpc("start_game_v2", {
       p_code: currentCompetition.code,
       p_class_id: $("classSelect").value,
       p_first_name: $("firstName").value.trim(),
       p_last_name: $("lastName").value.trim()
     });
+    currentRunId = registration.run_id;
+    currentAttemptNumber = registration.attempt_number;
+    attemptsRemaining = registration.attempts_remaining;
+    $("gameAttempt").textContent = `INTENTO ${currentAttemptNumber} DE 3`;
     $("registrationCard").classList.add("hidden");
     $("gameCard").classList.remove("hidden");
     $("leaderboardSection").classList.add("hidden");
@@ -205,17 +210,21 @@ async function finishGame() {
   try {
     const result = await rpc("complete_game", { p_run_id: currentRunId, p_correct_matches: vocabulary.length, p_mistakes: mistakes });
     $("finalScore").textContent = result.score; $("finalAccuracy").textContent = `${result.accuracy}%`;
-    $("finalTime").textContent = formatTime(result.duration_seconds); $("savingStatus").textContent = "Resultado guardado correctamente.";
+    $("finalTime").textContent = formatTime(result.duration_seconds);
+    $("savingStatus").textContent = attemptsRemaining ? `Resultado guardado. Te quedan ${attemptsRemaining} ${attemptsRemaining === 1 ? "intento" : "intentos"}.` : "Resultado guardado. Has completado tus 3 intentos.";
   } catch (error) {
     $("savingStatus").textContent = `No se pudo guardar: ${error.message}`;
   }
-  $("leaderboardSection").classList.remove("hidden"); await loadLeaderboards(); $("playAgain").focus();
+  $("playAgain").disabled = attemptsRemaining === 0;
+  $("playAgain").innerHTML = attemptsRemaining ? `Usar otro intento (${attemptsRemaining} ${attemptsRemaining === 1 ? "disponible" : "disponibles"}) <span aria-hidden="true">↻</span>` : "Has completado tus 3 intentos";
+  $("leaderboardSection").classList.remove("hidden"); await loadLeaderboards();
+  (attemptsRemaining ? $("playAgain") : $("refreshLeaderboard")).focus();
 }
 
 async function loadLeaderboards() {
   try {
     const [overall, classes, podiums] = await Promise.all([
-      rpc("get_leaderboard", { p_code: currentCompetition.code, p_limit: 25 }),
+      rpc("get_leaderboard_v2", { p_code: currentCompetition.code, p_limit: 25 }),
       rpc("get_class_standings", { p_code: currentCompetition.code }),
       rpc("get_class_podiums", { p_code: currentCompetition.code })
     ]);
@@ -227,7 +236,7 @@ async function loadLeaderboards() {
 
 function rankingTable(rows) {
   if (!rows.length) return '<p class="empty-ranking">Aún no hay resultados. ¡Puedes inaugurar la clasificación!</p>';
-  return `<div class="table-wrap"><table><thead><tr><th>#</th><th>Estudiante</th><th>Clase</th><th>Puntos</th><th>Fallos</th><th>Tiempo</th></tr></thead><tbody>${rows.map(row => `<tr><td class="rank rank-${row.rank_position}">${medal(row.rank_position)}</td><td><strong>${escapeHtml(row.display_name)}</strong></td><td><span class="class-dot" style="--class-color:${row.class_color}"></span>${escapeHtml(row.class_name)}</td><td><strong>${row.score}</strong></td><td>${row.mistakes}</td><td>${formatTime(row.duration_seconds)}</td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="table-wrap"><table><thead><tr><th>#</th><th>Estudiante</th><th>Clase</th><th>Mejor puntuación</th><th>Intentos</th><th>Fallos</th><th>Tiempo</th></tr></thead><tbody>${rows.map(row => `<tr><td class="rank rank-${row.rank_position}">${medal(row.rank_position)}</td><td><strong>${escapeHtml(row.display_name)}</strong></td><td><span class="class-dot" style="--class-color:${row.class_color}"></span>${escapeHtml(row.class_name)}</td><td><strong>${row.score}</strong></td><td><span class="attempt-pill">${row.attempt_count}/3</span></td><td>${row.mistakes}</td><td>${formatTime(row.duration_seconds)}</td></tr>`).join("")}</tbody></table></div>`;
 }
 
 function classTable(rows) {

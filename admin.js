@@ -77,9 +77,9 @@ async function showResults(event) {
   const session = competitions.find(item => item.code === code);
   $("adminRankingTitle").textContent = session?.name || code; $("adminRanking").classList.remove("hidden");
   $("adminRankingContent").innerHTML = '<p class="loading-ranking">Cargando resultados…</p>';
-  const { data, error } = await client.rpc("get_leaderboard", { p_code: code, p_limit: 25 });
+  const { data, error } = await client.rpc("get_leaderboard_v2", { p_code: code, p_limit: 25 });
   if (error) return $("adminRankingContent").textContent = error.message;
-  $("adminRankingContent").innerHTML = data.length ? `<div class="table-wrap"><table><thead><tr><th>#</th><th>Estudiante</th><th>Clase</th><th>Puntos</th><th>Fallos</th><th>Tiempo</th></tr></thead><tbody>${data.map(row => `<tr><td>${medal(row.rank_position)}</td><td><strong>${escapeHtml(row.display_name)}</strong></td><td>${escapeHtml(row.class_name)}</td><td>${row.score}</td><td>${row.mistakes}</td><td>${formatTime(row.duration_seconds)}</td></tr>`).join("")}</tbody></table></div>` : '<p class="empty-ranking">Esta sesión todavía no tiene resultados.</p>';
+  $("adminRankingContent").innerHTML = data.length ? `<div class="table-wrap"><table><thead><tr><th>#</th><th>Estudiante</th><th>Clase</th><th>Mejor puntuación</th><th>Intentos</th><th>Fallos</th><th>Tiempo</th></tr></thead><tbody>${data.map(row => `<tr><td>${medal(row.rank_position)}</td><td><strong>${escapeHtml(row.display_name)}</strong></td><td>${escapeHtml(row.class_name)}</td><td>${row.score}</td><td><span class="attempt-pill">${row.attempt_count}/3</span></td><td>${row.mistakes}</td><td>${formatTime(row.duration_seconds)}</td></tr>`).join("")}</tbody></table></div>` : '<p class="empty-ranking">Esta sesión todavía no tiene resultados.</p>';
   $("adminRanking").scrollIntoView({ behavior: "smooth" });
 }
 

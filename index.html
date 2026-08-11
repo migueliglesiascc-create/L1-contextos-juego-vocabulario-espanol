@@ -6,8 +6,8 @@
   <meta name="description" content="Juego de vocabulario de la Lección 1: Contextos. Empareja expresiones en español con su significado en inglés.">
   <meta name="theme-color" content="#08a7df">
   <title>Contextos · Empareja el vocabulario</title>
-  <link rel="icon" type="image/png" href="app-icon.png?v=1">
-  <link rel="apple-touch-icon" href="app-icon.png?v=1">
+  <link rel="icon" type="image/png" href="student-icon.png?v=1">
+  <link rel="apple-touch-icon" href="student-icon.png?v=1">
   <link rel="manifest" href="site.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,7 +32,7 @@
       <div class="registration-copy">
         <p class="eyebrow">COMPETICIÓN ENTRE CLASES</p>
         <h2 id="registrationTitle">¿Listo para jugar?</h2>
-        <p>Introduce tus datos para guardar tu resultado. En la clasificación aparecerá solamente tu nombre y la inicial de tu apellido.</p>
+        <p>Tienes un máximo de tres intentos. Guardaremos los tres y tu mejor puntuación será la que aparezca en la clasificación.</p>
       </div>
       <form id="registrationForm" class="registration-form">
         <label>Competición
@@ -65,7 +65,7 @@
     <section class="game-card hidden" id="gameCard" aria-labelledby="game-title">
       <h2 class="sr-only" id="game-title">Juego de emparejar vocabulario</h2>
       <div class="status-bar">
-        <div class="round-copy"><span id="sessionName">SESIÓN</span><span>·</span><span>RONDA</span><strong id="roundNumber">1</strong><span>DE</span><strong id="roundTotal">4</strong></div>
+        <div class="round-copy"><span id="sessionName">SESIÓN</span><span>·</span><span id="gameAttempt">INTENTO 1 DE 3</span><span>·</span><span>RONDA</span><strong id="roundNumber">1</strong><span>DE</span><strong id="roundTotal">4</strong></div>
         <div class="score-copy"><span id="matchedCount">0</span><span>/</span><span id="pairCount">6</span><span>parejas</span></div>
       </div>
       <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
@@ -123,6 +123,6 @@
     </section>
     <p class="tip"><span aria-hidden="true">⌨</span> También puedes usar <kbd>Tab</kbd> y <kbd>Enter</kbd> para jugar.</p>
   </main>
-  <script src="script.js?v=3"></script>
+  <script src="script.js?v=4"></script>
 </body>
 </html>
