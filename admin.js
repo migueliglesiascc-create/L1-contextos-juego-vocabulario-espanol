@@ -2,6 +2,7 @@ const SUPABASE_URL = "https://nxpznzywxvfccosecmab.supabase.co";
 const SUPABASE_KEY = "sb_publishable_RDuz6BsBu9zIEDjylAMLcQ_7ot5eW2i";
 const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = id => document.getElementById(id);
+const t = (key, vars) => window.i18n?.t(key, vars) || key;
 let competitions = [];
 let currentResultsCode = null;
 
@@ -14,7 +15,7 @@ async function authorize() {
   const { data, error } = await client.rpc("is_teacher");
   if (error || !data) {
     await client.auth.signOut();
-    $("loginMessage").textContent = "Este correo no está autorizado.";
+    $("loginMessage").textContent = t("unauthorized");
     $("loginMessage").className = "form-message bad";
     return;
   }
@@ -26,34 +27,34 @@ async function authorize() {
 async function sendMagicLink(event) {
   event.preventDefault();
   const button = event.submitter;
-  button.disabled = true; button.textContent = "Enviando…";
+  button.disabled = true; button.textContent = t("sending");
   const { error } = await client.auth.signInWithOtp({
     email: $("adminEmail").value.trim(),
     options: { emailRedirectTo: `${location.origin}${location.pathname}` }
   });
-  $("loginMessage").textContent = error ? error.message : "Revisa tu correo y abre el enlace de acceso.";
+  $("loginMessage").textContent = error ? error.message : t("checkEmail");
   $("loginMessage").className = `form-message ${error ? "bad" : "good"}`;
-  button.disabled = false; button.textContent = "Enviar enlace de acceso";
+  button.disabled = false; button.textContent = window.i18n?.language === "en" ? "Send sign-in link" : "Enviar enlace de acceso";
 }
 
 async function loadSessions() {
   const { data, error } = await client.rpc("admin_list_competitions");
   if (error) return showAdminError(error.message);
   competitions = data;
-  $("adminSessionList").innerHTML = data.map(sessionCard).join("") || '<p class="empty-ranking">Todavía no hay sesiones.</p>';
+  $("adminSessionList").innerHTML = data.map(sessionCard).join("") || `<p class="empty-ranking">${t("noSessions")}</p>`;
   document.querySelectorAll("[data-toggle]").forEach(button => button.addEventListener("click", toggleSession));
   document.querySelectorAll("[data-results]").forEach(button => button.addEventListener("click", showResults));
   document.querySelectorAll("[data-copy]").forEach(button => button.addEventListener("click", copyStudentLink));
 }
 
 function sessionCard(session) {
-  const status = session.is_active ? "Abierta" : "Cerrada";
+  const status = t(session.is_active ? "open" : "closed");
   return `<article class="admin-session-card ${session.is_active ? "is-open" : "is-closed"}">
-    <div><span class="session-status">${status}</span><h3>${escapeHtml(session.name)}</h3><code>${session.code}</code><p>${session.result_count} resultados completados</p></div>
+    <div><span class="session-status">${status}</span><h3>${escapeHtml(session.name)}</h3><code>${session.code}</code><p>${t("completedResults", { count: session.result_count })}</p></div>
     <div class="session-actions">
-      <button class="refresh-button" data-results="${session.code}" type="button">Ver resultados</button>
-      ${session.is_active ? `<button class="refresh-button" data-copy="${session.code}" type="button">Copiar enlace</button>` : ""}
-      <button class="primary-button compact-button" data-toggle="${session.id}" data-active="${!session.is_active}" type="button">${session.is_active ? "Cerrar sesión" : "Reabrir"}</button>
+      <button class="refresh-button" data-results="${session.code}" type="button">${t("viewResults")}</button>
+      ${session.is_active ? `<button class="refresh-button" data-copy="${session.code}" type="button">${t("copyLink")}</button>` : ""}
+      <button class="primary-button compact-button" data-toggle="${session.id}" data-active="${!session.is_active}" type="button">${t(session.is_active ? "closeSession" : "reopen")}</button>
     </div>
   </article>`;
 }
@@ -62,8 +63,8 @@ async function createSession(event) {
   event.preventDefault();
   const name = $("newSessionName").value.trim(), code = $("newSessionCode").value.trim().toUpperCase();
   const { error } = await client.rpc("admin_create_competition", { p_name: name, p_code: code });
-  if (error) return showAdminError(error.message.includes("duplicate") ? "Ese código ya existe." : error.message);
-  event.target.reset(); $("adminMessage").textContent = "Competición creada y abierta."; $("adminMessage").className = "form-message good";
+  if (error) return showAdminError(error.message.includes("duplicate") ? t("duplicateCode") : error.message);
+  event.target.reset(); $("adminMessage").textContent = t("competitionCreated"); $("adminMessage").className = "form-message good";
   await loadSessions();
 }
 
@@ -82,10 +83,10 @@ async function loadResults(code) {
   currentResultsCode = code;
   const session = competitions.find(item => item.code === code);
   $("adminRankingTitle").textContent = session?.name || code; $("adminRanking").classList.remove("hidden");
-  $("adminRankingContent").innerHTML = '<p class="loading-ranking">Cargando resultados…</p>';
+  $("adminRankingContent").innerHTML = `<p class="loading-ranking">${t("loadingResults")}</p>`;
   const { data, error } = await client.rpc("admin_get_leaderboard_v2", { p_code: code, p_limit: 100 });
   if (error) return $("adminRankingContent").textContent = error.message;
-  $("adminRankingContent").innerHTML = data.length ? `<div class="table-wrap"><table><thead><tr><th>#</th><th>Estudiante</th><th>ID</th><th>Clase</th><th>Mejor puntuación</th><th>Intentos</th><th>Fallos</th><th>Tiempo</th><th>Acción</th></tr></thead><tbody>${data.map(row => `<tr><td>${medal(row.rank_position)}</td><td><strong>${escapeHtml(row.display_name)}</strong></td><td><code>${escapeHtml(row.masked_student_id)}</code></td><td>${escapeHtml(row.class_name)}</td><td>${row.score}</td><td><span class="attempt-pill">${row.attempt_count}/3</span></td><td>${row.mistakes}</td><td>${formatTime(row.duration_seconds)}</td><td><button class="reset-attempts-button" type="button" data-reset-ref="${row.student_ref}" data-class-id="${row.class_id}" data-student-name="${encodeURIComponent(row.display_name)}">Reiniciar</button></td></tr>`).join("")}</tbody></table></div>` : '<p class="empty-ranking">Esta sesión todavía no tiene resultados.</p>';
+  $("adminRankingContent").innerHTML = data.length ? `<div class="table-wrap"><table><thead><tr><th>#</th><th>Estudiante</th><th>ID</th><th>Clase</th><th>Mejor puntuación</th><th>Intentos</th><th>Fallos</th><th>Tiempo</th><th>Acción</th></tr></thead><tbody>${data.map(row => `<tr><td>${medal(row.rank_position)}</td><td><strong>${escapeHtml(row.display_name)}</strong></td><td><code>${escapeHtml(row.masked_student_id)}</code></td><td>${escapeHtml(row.class_name)}</td><td>${row.score}</td><td><span class="attempt-pill">${row.attempt_count}/3</span></td><td>${row.mistakes}</td><td>${formatTime(row.duration_seconds)}</td><td><button class="reset-attempts-button" type="button" data-reset-ref="${row.student_ref}" data-class-id="${row.class_id}" data-student-name="${encodeURIComponent(row.display_name)}">${t("reset")}</button></td></tr>`).join("")}</tbody></table></div>` : `<p class="empty-ranking">${t("noResults")}</p>`;
   document.querySelectorAll("[data-reset-ref]").forEach(button => button.addEventListener("click", resetStudentAttempts));
   $("adminRanking").scrollIntoView({ behavior: "smooth" });
 }
@@ -93,15 +94,15 @@ async function loadResults(code) {
 async function resetStudentAttempts(event) {
   const button = event.currentTarget;
   const studentName = decodeURIComponent(button.dataset.studentName);
-  if (!confirm(`¿Reiniciar los intentos de ${studentName}?\n\nSe eliminarán sus partidas y su mejor puntuación de esta sesión.`)) return;
-  button.disabled = true; button.textContent = "Reiniciando…";
+  if (!confirm(t("resetConfirm", { name: studentName }))) return;
+  button.disabled = true; button.textContent = t("resetting");
   const { data, error } = await client.rpc("admin_reset_student_attempts", {
     p_code: currentResultsCode,
     p_class_id: button.dataset.classId,
     p_student_ref: button.dataset.resetRef
   });
-  if (error) { button.disabled = false; button.textContent = "Reiniciar"; return showAdminError(error.message); }
-  $("adminMessage").textContent = `Intentos reiniciados: ${data} partidas eliminadas.`;
+  if (error) { button.disabled = false; button.textContent = t("reset"); return showAdminError(error.message); }
+  $("adminMessage").textContent = t("resetDone", { count: data });
   $("adminMessage").className = "form-message good";
   await loadSessions();
   await loadResults(currentResultsCode);
@@ -110,7 +111,7 @@ async function resetStudentAttempts(event) {
 async function copyStudentLink(event) {
   const link = `${location.origin}${location.pathname.replace("admin.html", "")}?session=${event.currentTarget.dataset.copy}`;
   await navigator.clipboard.writeText(link);
-  event.currentTarget.textContent = "Enlace copiado";
+  event.currentTarget.textContent = t("linkCopied");
 }
 
 function showAdminError(message) { $("adminMessage").textContent = message; $("adminMessage").className = "form-message bad"; }
@@ -129,3 +130,7 @@ $("closeRanking").addEventListener("click", () => $("adminRanking").classList.ad
 $("signOut").addEventListener("click", async () => { await client.auth.signOut(); location.reload(); });
 client.auth.onAuthStateChange((event, session) => { if (event === "SIGNED_IN" && session) setTimeout(authorize, 0); });
 initialize();
+document.addEventListener("languagechange", () => {
+  if (!$("adminDashboard").classList.contains("hidden")) loadSessions();
+  if (currentResultsCode && !$("adminRanking").classList.contains("hidden")) loadResults(currentResultsCode);
+});

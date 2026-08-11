@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Fraunces:opsz,wght@9..144,700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=4">
+  <link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body class="student-theme">
   <main class="app-shell">
@@ -23,9 +23,9 @@
         <h1>Encuentra su pareja</h1>
         <p class="intro">Selecciona una expresión en español y después su significado en inglés.</p>
       </div>
-      <button class="sound-button" id="soundButton" type="button" aria-pressed="true" title="Desactivar sonidos">
+      <div class="hero-actions"><button class="language-button" type="button" data-language-toggle aria-label="Switch to English">EN</button><button class="sound-button" id="soundButton" type="button" aria-pressed="true" title="Desactivar sonidos">
         <span aria-hidden="true" id="soundIcon">🔊</span><span class="sr-only" id="soundLabel">Sonidos activados</span>
-      </button>
+      </button></div>
     </header>
 
     <section class="registration-card" id="registrationCard" aria-labelledby="registrationTitle">
@@ -126,7 +126,9 @@
       <div class="ranking-panel hidden" id="podiumsPanel" role="tabpanel"></div>
     </section>
     <p class="tip"><span aria-hidden="true">⌨</span> También puedes usar <kbd>Tab</kbd> y <kbd>Enter</kbd> para jugar.</p>
+    <footer class="site-footer">© 2026 · Un juego diseñado por Miguel Iglesias</footer>
   </main>
-  <script src="script.js?v=5"></script>
+  <script src="i18n.js?v=1"></script>
+  <script src="script.js?v=6"></script>
 </body>
 </html>

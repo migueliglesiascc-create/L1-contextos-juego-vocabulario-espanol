@@ -34,6 +34,7 @@ let locked = false, soundEnabled = true, currentCompetition = null, currentRunId
 let currentAttemptNumber = 0, attemptsRemaining = 0;
 
 const $ = (id) => document.getElementById(id);
+const t = (key, vars) => window.i18n?.t(key, vars) || key;
 const shuffle = (items) => {
   const copy = [...items];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -58,12 +59,12 @@ async function loadCompetition() {
   const code = $("sessionCode").value;
   if (!code) return;
   $("classSelect").disabled = true;
-  $("classSelect").innerHTML = '<option value="">Cargando clases…</option>';
+  $("classSelect").innerHTML = `<option value="">${t("loadingClasses")}</option>`;
   try {
     const competition = await rpc("get_competition", { p_code: code });
     if (!competition) throw new Error("No encontramos una sesión con ese código.");
     currentCompetition = competition;
-    $("classSelect").innerHTML = '<option value="">Selecciona tu clase</option>' +
+    $("classSelect").innerHTML = `<option value="">${t("selectClass")}</option>` +
       competition.classes.map(item => `<option value="${item.id}">${escapeHtml(item.name)}</option>`).join("");
     $("classSelect").disabled = false;
     $("formMessage").textContent = competition.name;
@@ -71,7 +72,7 @@ async function loadCompetition() {
     localStorage.setItem("competitionCode", code);
   } catch (error) {
     currentCompetition = null;
-    $("classSelect").innerHTML = '<option value="">Sesión no disponible</option>';
+    $("classSelect").innerHTML = `<option value="">${t("sessionUnavailable")}</option>`;
     $("formMessage").textContent = error.message;
     $("formMessage").className = "form-message bad";
   }
@@ -83,19 +84,19 @@ async function loadActiveSessions() {
   try {
     const sessions = await rpc("list_active_competitions", {});
     if (!sessions.length) {
-      select.innerHTML = '<option value="">No hay competiciones abiertas</option>';
-      $("formMessage").textContent = "Tu profesor abrirá una competición próximamente.";
+      select.innerHTML = `<option value="">${t("noCompetitions")}</option>`;
+      $("formMessage").textContent = t("teacherWillOpen");
       return;
     }
-    select.innerHTML = '<option value="">Selecciona la competición</option>' + sessions.map(session => `<option value="${session.code}">${escapeHtml(session.name)}</option>`).join("");
+    select.innerHTML = `<option value="">${t("selectCompetition")}</option>` + sessions.map(session => `<option value="${session.code}">${escapeHtml(session.name)}</option>`).join("");
     const requested = new URLSearchParams(location.search).get("session") || localStorage.getItem("competitionCode");
     if (requested && sessions.some(session => session.code === requested.toUpperCase())) select.value = requested.toUpperCase();
     else if (sessions.length === 1) select.value = sessions[0].code;
     select.disabled = false;
     if (select.value) await loadCompetition();
-    else { $("classSelect").innerHTML = '<option value="">Selecciona primero una competición</option>'; $("formMessage").textContent = ""; }
+    else { $("classSelect").innerHTML = `<option value="">${t("selectCompetitionFirst")}</option>`; $("formMessage").textContent = ""; }
   } catch (error) {
-    select.innerHTML = '<option value="">No se pudieron cargar las competiciones</option>';
+    select.innerHTML = `<option value="">${t("competitionsError")}</option>`;
     $("formMessage").textContent = error.message; $("formMessage").className = "form-message bad";
   }
 }
@@ -103,9 +104,9 @@ async function loadActiveSessions() {
 async function registerStudent(event) {
   event.preventDefault();
   const button = $("startButton");
-  button.disabled = true; button.textContent = "Preparando partida…";
+  button.disabled = true; button.textContent = t("preparing");
   if (!currentCompetition || currentCompetition.code !== $("sessionCode").value) await loadCompetition();
-  if (!currentCompetition) { button.disabled = false; button.innerHTML = 'Empezar la partida <span aria-hidden="true">→</span>'; return; }
+  if (!currentCompetition) { button.disabled = false; button.innerHTML = `${t("start")} <span aria-hidden="true">→</span>`; return; }
   try {
     const registration = await rpc("start_game_v3", {
       p_code: currentCompetition.code,
@@ -117,7 +118,7 @@ async function registerStudent(event) {
     currentRunId = registration.run_id;
     currentAttemptNumber = registration.attempt_number;
     attemptsRemaining = registration.attempts_remaining;
-    $("gameAttempt").textContent = `INTENTO ${currentAttemptNumber} DE 3`;
+    $("gameAttempt").textContent = t("attempt", { number: currentAttemptNumber });
     $("registrationCard").classList.add("hidden");
     $("gameCard").classList.remove("hidden");
     $("leaderboardSection").classList.add("hidden");
@@ -127,7 +128,7 @@ async function registerStudent(event) {
     $("formMessage").textContent = error.message;
     $("formMessage").className = "form-message bad";
   } finally {
-    button.disabled = false; button.innerHTML = 'Empezar la partida <span aria-hidden="true">→</span>';
+    button.disabled = false; button.innerHTML = `${t("start")} <span aria-hidden="true">→</span>`;
   }
 }
 
@@ -156,7 +157,7 @@ function renderRound() {
   const pairs = rounds[currentRound];
   $("roundNumber").textContent = currentRound + 1; $("roundTotal").textContent = rounds.length;
   $("pairCount").textContent = pairs.length; $("matchedCount").textContent = 0; $("progressFill").style.width = "0%";
-  $("feedback").textContent = "Elige una tarjeta de cada columna."; $("feedback").className = "feedback";
+  $("feedback").textContent = t("chooseCards"); $("feedback").className = "feedback";
   $("spanishCards").replaceChildren(...shuffle(pairs).map(pair => makeCard(pair, "es")));
   $("englishCards").replaceChildren(...shuffle(pairs).map(pair => makeCard(pair, "en")));
 }
@@ -184,19 +185,19 @@ function checkPair() {
     matched++; totalMatches++; tone(true);
     [selected.es, selected.en].forEach(card => { card.classList.remove("selected"); card.classList.add("matched"); card.disabled = true; });
     $("matchedCount").textContent = matched; $("progressFill").style.width = `${matched / rounds[currentRound].length * 100}%`;
-    $("feedback").textContent = "¡Correcto! Has encontrado una pareja."; $("feedback").className = "feedback good";
+    $("feedback").textContent = t("correct"); $("feedback").className = "feedback good";
     selected = { es: null, en: null }; locked = false;
     if (matched === rounds[currentRound].length) setTimeout(finishRound, 550);
   } else {
-    tone(false); $("feedback").textContent = "No es esa pareja. ¡Inténtalo otra vez!"; $("feedback").className = "feedback bad";
+    tone(false); $("feedback").textContent = t("wrong"); $("feedback").className = "feedback bad";
     [selected.es, selected.en].forEach(card => card.classList.add("wrong"));
     setTimeout(() => { [selected.es, selected.en].forEach(card => { card.classList.remove("selected", "wrong"); card.setAttribute("aria-pressed", "false"); }); selected = { es: null, en: null }; locked = false; }, 650);
   }
 }
 
 function finishRound() {
-  $("roundSummary").textContent = `Has encontrado ${matched} parejas en esta ronda.`;
-  $("nextRound").innerHTML = currentRound === rounds.length - 1 ? 'Ver resultados <span aria-hidden="true">→</span>' : 'Siguiente ronda <span aria-hidden="true">→</span>';
+  $("roundSummary").textContent = t("roundSummary", { count: matched });
+  $("nextRound").innerHTML = `${currentRound === rounds.length - 1 ? t("results") : t("nextRound")} <span aria-hidden="true">→</span>`;
   $("roundComplete").classList.remove("hidden"); $("nextRound").focus();
 }
 
@@ -207,17 +208,17 @@ async function finishGame() {
   const mistakes = attempts - totalMatches;
   $("totalLearned").textContent = vocabulary.length; $("finalMistakes").textContent = mistakes;
   $("finalAccuracy").textContent = `${Math.round(totalMatches / attempts * 100)}%`;
-  $("savingStatus").textContent = "Guardando tu resultado…";
+  $("savingStatus").textContent = t("saving");
   try {
     const result = await rpc("complete_game", { p_run_id: currentRunId, p_correct_matches: vocabulary.length, p_mistakes: mistakes });
     $("finalScore").textContent = result.score; $("finalAccuracy").textContent = `${result.accuracy}%`;
     $("finalTime").textContent = formatTime(result.duration_seconds);
-    $("savingStatus").textContent = attemptsRemaining ? `Resultado guardado. Te quedan ${attemptsRemaining} ${attemptsRemaining === 1 ? "intento" : "intentos"}.` : "Resultado guardado. Has completado tus 3 intentos.";
+    $("savingStatus").textContent = attemptsRemaining ? t("savedRemaining", { count: attemptsRemaining, word: t(attemptsRemaining === 1 ? "oneAttempt" : "manyAttempts") }) : t("savedDone");
   } catch (error) {
     $("savingStatus").textContent = `No se pudo guardar: ${error.message}`;
   }
   $("playAgain").disabled = attemptsRemaining === 0;
-  $("playAgain").innerHTML = attemptsRemaining ? `Usar otro intento (${attemptsRemaining} ${attemptsRemaining === 1 ? "disponible" : "disponibles"}) <span aria-hidden="true">↻</span>` : "Has completado tus 3 intentos";
+  $("playAgain").innerHTML = attemptsRemaining ? `${t("retry", { count: attemptsRemaining, word: t(attemptsRemaining === 1 ? "oneAvailable" : "manyAvailable") })} <span aria-hidden="true">↻</span>` : t("attemptsDone");
   $("leaderboardSection").classList.remove("hidden"); await loadLeaderboards();
   (attemptsRemaining ? $("playAgain") : $("refreshLeaderboard")).focus();
 }
@@ -236,16 +237,16 @@ async function loadLeaderboards() {
 }
 
 function rankingTable(rows) {
-  if (!rows.length) return '<p class="empty-ranking">Aún no hay resultados. ¡Puedes inaugurar la clasificación!</p>';
+  if (!rows.length) return `<p class="empty-ranking">${t("emptyRanking")}</p>`;
   return `<div class="table-wrap"><table><thead><tr><th>#</th><th>Estudiante</th><th>Clase</th><th>Mejor puntuación</th><th>Intentos</th><th>Fallos</th><th>Tiempo</th></tr></thead><tbody>${rows.map(row => `<tr><td class="rank rank-${row.rank_position}">${medal(row.rank_position)}</td><td><strong>${escapeHtml(row.display_name)}</strong></td><td><span class="class-dot" style="--class-color:${row.class_color}"></span>${escapeHtml(row.class_name)}</td><td><strong>${row.score}</strong></td><td><span class="attempt-pill">${row.attempt_count}/3</span></td><td>${row.mistakes}</td><td>${formatTime(row.duration_seconds)}</td></tr>`).join("")}</tbody></table></div>`;
 }
 
 function classTable(rows) {
-  return `<div class="team-grid">${rows.map(row => `<article class="team-card" style="--class-color:${row.class_color}"><span class="team-rank">${medal(row.rank_position)}</span><h3>${escapeHtml(row.class_name)}</h3><strong>${row.team_score ?? '—'}</strong><small>${row.qualifying_students} de 3 resultados</small></article>`).join("")}</div><p class="ranking-note">La puntuación de cada clase es el promedio de sus tres mejores estudiantes.</p>`;
+  return `<div class="team-grid">${rows.map(row => `<article class="team-card" style="--class-color:${row.class_color}"><span class="team-rank">${medal(row.rank_position)}</span><h3>${escapeHtml(row.class_name)}</h3><strong>${row.team_score ?? '—'}</strong><small>${row.qualifying_students} ${window.i18n?.language === "en" ? "of 3 results" : "de 3 resultados"}</small></article>`).join("")}</div><p class="ranking-note">${t("classNote")}</p>`;
 }
 
 function podiumCards(rows) {
-  if (!rows.length) return '<p class="empty-ranking">Los podios aparecerán cuando se registren resultados.</p>';
+  if (!rows.length) return `<p class="empty-ranking">${t("noPodiums")}</p>`;
   const groups = Object.groupBy ? Object.groupBy(rows, row => row.class_name) : rows.reduce((all, row) => ((all[row.class_name] ||= []).push(row), all), {});
   return `<div class="podium-grid">${Object.entries(groups).map(([name, students]) => `<article class="podium-card" style="--class-color:${students[0].class_color}"><h3>${escapeHtml(name)}</h3>${students.map(s => `<div><span>${medal(s.class_position)}</span><strong>${escapeHtml(s.display_name)}</strong><small>${s.score} pts</small></div>`).join("")}</article>`).join("")}</div>`;
 }
@@ -265,8 +266,13 @@ document.querySelectorAll(".tab-button").forEach(button => button.addEventListen
 }));
 $("soundButton").addEventListener("click", () => {
   soundEnabled = !soundEnabled; $("soundButton").setAttribute("aria-pressed", soundEnabled);
-  $("soundButton").title = soundEnabled ? "Desactivar sonidos" : "Activar sonidos";
-  $("soundIcon").textContent = soundEnabled ? "🔊" : "🔇"; $("soundLabel").textContent = soundEnabled ? "Sonidos activados" : "Sonidos desactivados";
+  $("soundButton").title = soundEnabled ? (window.i18n?.language === "en" ? "Turn sounds off" : "Desactivar sonidos") : (window.i18n?.language === "en" ? "Turn sounds on" : "Activar sonidos");
+  $("soundIcon").textContent = soundEnabled ? "🔊" : "🔇"; $("soundLabel").textContent = soundEnabled ? (window.i18n?.language === "en" ? "Sounds on" : "Sonidos activados") : (window.i18n?.language === "en" ? "Sounds off" : "Sonidos desactivados");
+});
+
+document.addEventListener("languagechange", () => {
+  if (currentAttemptNumber) $("gameAttempt").textContent = t("attempt", { number: currentAttemptNumber });
+  if (!$("leaderboardSection").classList.contains("hidden") && currentCompetition) loadLeaderboards();
 });
 
 loadActiveSessions();
