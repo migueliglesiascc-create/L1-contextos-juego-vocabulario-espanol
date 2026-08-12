@@ -143,10 +143,39 @@ function tone(success) {
   oscillator.start(); oscillator.stop(context.currentTime + .2);
 }
 
+function translationKey(value) {
+  return value.toLocaleLowerCase("en").replace(/[.!?;:]+$/g, "").replace(/\s+/g, " ").trim();
+}
+
+function buildUnambiguousRounds(items) {
+  const roundCount = Math.ceil(items.length / PAIRS_PER_ROUND);
+  const targetSizes = Array.from({ length: roundCount }, (_, index) =>
+    Math.min(PAIRS_PER_ROUND, items.length - index * PAIRS_PER_ROUND)
+  );
+  const groups = new Map();
+  shuffle(items).forEach(item => {
+    const key = translationKey(item.en);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  });
+  const orderedGroups = shuffle([...groups.entries()]).sort((a, b) => b[1].length - a[1].length);
+  const result = Array.from({ length: roundCount }, () => []);
+
+  orderedGroups.forEach(([key, group]) => {
+    shuffle(group).forEach(item => {
+      const candidates = shuffle(result.map((round, index) => index)).filter(index =>
+        result[index].length < targetSizes[index] &&
+        !result[index].some(existing => translationKey(existing.en) === key)
+      ).sort((a, b) => result[a].length - result[b].length);
+      if (!candidates.length) throw new Error(`No se puede separar la traducción repetida: ${item.en}`);
+      result[candidates[0]].push(item);
+    });
+  });
+  return result.map(shuffle);
+}
+
 function startGame() {
-  rounds = [];
-  const shuffled = shuffle(vocabulary.map((pair, id) => ({ ...pair, id })));
-  for (let i = 0; i < shuffled.length; i += PAIRS_PER_ROUND) rounds.push(shuffled.slice(i, i + PAIRS_PER_ROUND));
+  rounds = buildUnambiguousRounds(vocabulary.map((pair, id) => ({ ...pair, id })));
   currentRound = 0; attempts = 0; totalMatches = 0;
   $("gameComplete").classList.add("hidden"); $("roundComplete").classList.add("hidden"); $("board").classList.remove("hidden");
   renderRound();
