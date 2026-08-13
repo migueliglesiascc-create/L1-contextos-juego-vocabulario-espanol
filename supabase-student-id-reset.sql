@@ -76,7 +76,7 @@ begin
     select row_number() over (order by b.score desc, b.mistakes asc, b.duration_seconds asc) as position,
       b.first_name || ' ' || left(b.last_name, 1) || '.' as shown_name,
       b.class_id, cl.name, cl.color, b.score, b.duration_seconds, b.mistakes, b.accuracy, b.attempt_total,
-      case when b.student_id is null then 'Anterior' else repeat('•', greatest(length(b.student_id) - 4, 0)) || right(b.student_id, 4) end as masked_id,
+      case when b.student_id is null then 'Anterior' else repeat('•', greatest(length(b.student_id) - 3, 3)) || right(b.student_id, 3) end as masked_id,
       md5(b.student_key) as reset_ref
     from best b join public.classes cl on cl.id = b.class_id
   )

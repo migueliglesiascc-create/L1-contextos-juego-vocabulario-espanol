@@ -89,7 +89,7 @@ async function loadResults(code) {
   $("adminRankingContent").innerHTML = `<p class="loading-ranking">${t("loadingResults")}</p>`;
   const { data, error } = await client.rpc("admin_get_leaderboard_v2", { p_code: code, p_limit: 100 });
   if (error) return $("adminRankingContent").textContent = error.message;
-  $("adminRankingContent").innerHTML = data.length ? `<div class="table-wrap"><table><thead><tr><th>#</th><th>Estudiante</th><th>ID</th><th>Clase</th><th>Mejor puntuación</th><th>Intentos</th><th>Fallos</th><th>Tiempo</th><th>Acción</th></tr></thead><tbody>${data.map(row => `<tr><td>${medal(row.rank_position)}</td><td><strong>${escapeHtml(row.display_name)}</strong></td><td><code>${escapeHtml(row.masked_student_id)}</code></td><td>${escapeHtml(row.class_name)}</td><td>${row.score}</td><td><span class="attempt-pill">${row.attempt_count}/3</span></td><td>${row.mistakes}</td><td>${formatTime(row.duration_seconds)}</td><td><button class="reset-attempts-button" type="button" data-reset-ref="${row.student_ref}" data-class-id="${row.class_id}" data-student-name="${encodeURIComponent(row.display_name)}">${t("reset")}</button></td></tr>`).join("")}</tbody></table></div>` : `<p class="empty-ranking">${t("noResults")}</p>`;
+  $("adminRankingContent").innerHTML = data.length ? `<div class="table-wrap"><table><thead><tr><th>#</th><th>Estudiante</th><th>ID</th><th>Clase</th><th>Mejor puntuación</th><th>Intentos</th><th>Fallos</th><th>Tiempo</th><th>Acción</th></tr></thead><tbody>${data.map(row => `<tr><td>${medal(row.rank_position)}</td><td><strong>${escapeHtml(row.display_name)}</strong></td><td><code>${escapeHtml(maskStudentId(row.masked_student_id))}</code></td><td>${escapeHtml(row.class_name)}</td><td>${row.score}</td><td><span class="attempt-pill">${row.attempt_count}/3</span></td><td>${row.mistakes}</td><td>${formatTime(row.duration_seconds)}</td><td><button class="reset-attempts-button" type="button" data-reset-ref="${row.student_ref}" data-class-id="${row.class_id}" data-student-name="${encodeURIComponent(row.display_name)}">${t("reset")}</button></td></tr>`).join("")}</tbody></table></div>` : `<p class="empty-ranking">${t("noResults")}</p>`;
   document.querySelectorAll("[data-reset-ref]").forEach(button => button.addEventListener("click", resetStudentAttempts));
   $("adminRanking").scrollIntoView({ behavior: "smooth" });
 }
@@ -149,6 +149,12 @@ function downloadSessionQr() {
 
 function showAdminError(message) { $("adminMessage").textContent = message; $("adminMessage").className = "form-message bad"; }
 function escapeHtml(value) { const div = document.createElement("div"); div.textContent = String(value ?? ""); return div.innerHTML; }
+function maskStudentId(value) {
+  const id = String(value ?? "");
+  if (!id || id === "Anterior") return id;
+  const visibleDigits = id.slice(-3);
+  return `${"•".repeat(Math.max(id.length - 3, 3))}${visibleDigits}`;
+}
 function formatTime(seconds) { return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`; }
 function medal(rank) { return ({ 1: "🥇", 2: "🥈", 3: "🥉" })[rank] || rank; }
 
